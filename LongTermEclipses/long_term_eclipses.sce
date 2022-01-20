@@ -127,7 +127,7 @@ end
 // PLOTS OF THE ORBIT EVOLUTION
 // =====================================================
 
-scf();
+scf(1);
 subplot(231)
 plot(cjd_stela-cjd0,sma_stela - %CL_eqRad, 'b')
 //plot(cjd_stela-cjd0,mean_kep_stela_nm(1,:) - %CL_eqRad, 'r')
@@ -172,8 +172,9 @@ ylabel('MLTAN [hours]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 
+xs2png(1,'long_term_orbit.png');
 
-scf();
+scf(2);
 plot(cjd_stela-cjd0,eclipse_duration_umb/60,'.','MarkerSize',2,'Color','Blue')
 //plot(cjd_stela-cjd0,eclipse_duration_umbc/60,'.','MarkerSize',2,'Color','Purple')
 //plot(cjd_stela-cjd0,eclipse_duration_pen/60,'.','MarkerSize',2,'Color','Red')
@@ -183,6 +184,7 @@ ylabel('Eclipse duration [mins]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 
+xs2png(2,'long_term_eclipses.png');
 
 
 
