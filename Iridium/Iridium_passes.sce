@@ -14,7 +14,7 @@ min_pass_duration_s = 15;
 min_pass_size = ceil(15/(time_step*86400));
 OrbitType = "SSO"; // or "ISS" or "ISSlow"
 
-t0 = CL_dat_cal2cjd(2017,01,16,12,0,0); //CL_dat_cal2cjd(2024,07,02,12,0,0); //year, month day;    // initial time
+t0 = CL_dat_cal2cjd(2024,07,02,12,0,0); //year, month day;    // initial time
 t = t0 + (0:time_step:duration) ;
 freq_emission = 1617.e6;
 Delta_doppler_max = 345; // +/- 345Hz/s max Doppler rate (time-derivative of Doppler Shift)
@@ -192,13 +192,13 @@ duration_min = duration*24*60;
 total_comm_time_min = sum(is_visible)*time_step*24*60;
 comm_availability_ratio = total_comm_time_min/duration_min;
 // TODO : get individual passes length
-scf()
-plot(MA_deg, is_visible)
-xlabel('mean anomaly (deg)')
-ylabel('Visible satellites')
-title('Visible satellites ')
-CL_g_stdaxes()
-set(gca(),'data_bounds',[-5, -0.2; 365, 1.2])
+//scf()
+//plot(MA_deg, is_visible)
+//xlabel('mean anomaly (deg)')
+//ylabel('Visible satellites')
+//title('Visible satellites ')
+//CL_g_stdaxes()
+//set(gca(),'data_bounds',[-5, -0.2; 365, 1.2])
 //scf()
 //plot(t_since_periapsis/60, is_visible)
 //xlabel('time since periapsis [min]')
@@ -228,10 +228,10 @@ ylabel('Visible satellites')
 title('Visible satellites ')
 CL_g_stdaxes()
 
-raans = kep_sat(5,:);
-scf()
-plot(t-t0, raans)
-xlabel('mission elapsed time (days)')
-ylabel('RAAN [rad]')
-title('Right Ascension of Ascending node, 10 days at 370km 51.6deg')
-CL_g_stdaxes()
+//raans = kep_sat(5,:);
+//scf()
+//plot(t-t0, raans)
+//xlabel('mission elapsed time (days)')
+//ylabel('RAAN [rad]')
+//title('Right Ascension of Ascending node, XX days at 370km 51.6deg')
+//CL_g_stdaxes()
