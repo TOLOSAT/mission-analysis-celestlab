@@ -58,7 +58,7 @@ params_stela.srp_coef = 1.8; // common value among spacecraft
 params_stela.zonal_maxDeg = 15; // maximum zonal terms for gravity harmonics
 params_stela.tesseral_maxDeg = 15; // maximum tesseral terms for gravity harmonics
 params_stela.drag_solarActivityType = 'variable'; // here we have to look for the predicted solar activity in 2024, I took one of the highest values 
-data_dir=strsubst(pwd(),"LongTermEclipses","Data");
+data_dir=strsubst(pwd(),"ExportTrajectory","Data");
 params_stela.solarActivityFile =strcat([data_dir,"\stela_solar_activity.txt"]); // predicted Geomagnetic index in 2024 same method as for the solar flux
 
 // Setup epochs vector
@@ -167,7 +167,8 @@ ylabel('MLTAN [hours]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 
-scf(1).figure_size=[3840,2160]
+scf(1).figure_size=[2000,1000];
+deletefile('orbit_evolution_stela.png');
 xs2png(1,'orbit_evolution_stela.png');
 
 scf(2);
@@ -178,8 +179,10 @@ ylabel('Eclipse duration [mins]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 
-scf(2).figure_size=[3840,2160]
+scf(2).figure_size=[2000,1000];
+deletefile('eclipses_evolution_stela.png');
 xs2png(2,'eclipses_evolution_stela.png');
+
 
 
 csvWrite(mean_kep_stela',"stela_mean_kep.csv")

@@ -156,7 +156,8 @@ ylabel('Mean Anomaly (deg)')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 
-scf(1).figure_size=[3840,2160]
+scf(1).figure_size=[2000,1000];
+deletefile('orbit_evolution_lydane.png');
 xs2png(1,'orbit_evolution_lydane.png');
 
 for ii=1:length(lydane_epochs_0)
