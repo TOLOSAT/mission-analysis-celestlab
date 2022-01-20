@@ -137,7 +137,6 @@ printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
 printf('    Mean Passes Per Day : %f \n', mean_passes_per_day);
 printf('    Mean Communication Time Per Day (min) : %f \n', mean_passes_per_day*avg_duration_s/60);
 
-
 // compute expected number (in statistical sense) of  iridium satellites
 // that satisfy visibility + doppler shift + doppler rate constraints
 // as a function of AoL (argument of latitude, = omega + TA)
@@ -149,6 +148,10 @@ for l=1:length(t((t-t0)*86400<T))
     visi_sat_expected_over_aol(1,l) = sum(is_visible(:,(myaol <= aol & (aol < (myaol+daol))) ));
 end
 visi_sat_expected_over_aol = visi_sat_expected_over_aol./(duration.*86400./T);
+
+raans = kep_sat(5,:);
+save("big_savefile.dat", "ordered_pass_list", "is_visible", "t", ...
+     "raans", "aol", "visi_sat_expected_over_aol", "kepConstIridium");
 
 // = = = = = = = = = = = = = = = = = = = = = = =  visualisation  = = = = = = = = = = = = = = = = = = = = = = =
 
