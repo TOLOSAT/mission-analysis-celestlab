@@ -9,12 +9,12 @@ CL_init();
 // with these settings it takes my computer 4 minutes to run the code
 // but running over longer durations yields much more statistically interesting results
 time_step = 5/86400;   // in days
-duration = 6/24; // in days
+duration = 70*24/24; // in days
 min_pass_duration_s = 15;
 min_pass_size = ceil(15/(time_step*86400));
-OrbitType = "SSO"; // or "ISS" or "ISSlow"
+OrbitType = "ISSlow"; // or "ISS" or "ISSlow"
 
-t0 = CL_dat_cal2cjd(2024,07,02,12,0,0); //year, month day;    // initial time
+t0 = CL_dat_cal2cjd(2017,01,16,12,0,0); //year, month day;    // initial time
 t = t0 + (0:time_step:duration) ;
 freq_emission = 1617.e6;
 Delta_doppler_max = 345; // +/- 345Hz/s max Doppler rate (time-derivative of Doppler Shift)
@@ -137,7 +137,6 @@ printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
 printf('    Mean Passes Per Day : %f \n', mean_passes_per_day);
 printf('    Mean Communication Time Per Day (min) : %f \n', mean_passes_per_day*avg_duration_s/60);
 
-
 // compute expected number (in statistical sense) of  iridium satellites
 // that satisfy visibility + doppler shift + doppler rate constraints
 // as a function of AoL (argument of latitude, = omega + TA)
@@ -149,6 +148,10 @@ for l=1:length(t((t-t0)*86400<T))
     visi_sat_expected_over_aol(1,l) = sum(is_visible(:,(myaol <= aol & (aol < (myaol+daol))) ));
 end
 visi_sat_expected_over_aol = visi_sat_expected_over_aol./(duration.*86400./T);
+
+raans = kep_sat(5,:);
+save("big_savefile.dat", "ordered_pass_list", "is_visible", "t", ...
+     "raans", "aol", "visi_sat_expected_over_aol", "kepConstIridium");
 
 // = = = = = = = = = = = = = = = = = = = = = = =  visualisation  = = = = = = = = = = = = = = = = = = = = = = =
 

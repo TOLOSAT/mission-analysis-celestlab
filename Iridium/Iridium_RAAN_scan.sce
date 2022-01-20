@@ -187,8 +187,8 @@ for r=1:raan_points
     end
     // statistics for this RAAN shift
     is_visible = (elevations_over_t >= min_el_for_vizi_deg & ... 
-    abs(doppler_shifts) <= doppler_max & ...
-    abs(doppler_rates) <= Delta_doppler_max)*1; // 0s and 1s
+                  abs(doppler_shifts) <= doppler_max & ...
+                  abs(doppler_rates) <= Delta_doppler_max)*1; // 0s and 1s
     ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s)
     [mean_passes_per_day, avg_duration_s] = IridiumPassStatistics(ordered_pass_list)
     printf('\n\n Delta RAAN : %f rad \n', r*2*%pi/raan_points);
