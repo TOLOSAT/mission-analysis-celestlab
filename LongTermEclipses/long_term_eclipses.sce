@@ -172,6 +172,7 @@ ylabel('MLTAN [hours]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 scf(1).figure_size=[2000,1000];
+deletefile('long_term_orbit.png')
 xs2png(1,'long_term_orbit.png');
 
 scf(2);
@@ -184,6 +185,7 @@ ylabel('Eclipse duration [mins]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 scf(2).figure_size=[2000,1000];
+deletefile('long_term_eclipses.png')
 xs2png(2,'long_term_eclipses.png');
 
 
