@@ -132,7 +132,7 @@ subplot(231)
 plot(cjd_stela-cjd0,sma_stela - %CL_eqRad, 'b')
 //plot(cjd_stela-cjd0,mean_kep_stela_nm(1,:) - %CL_eqRad, 'r')
 title('Altitude decay with STELA propagation')
-xlabel('Elapsed days since launch')
+xlabel('Elapsed days since launch') 
 ylabel('Altitude (m)')
 //legend(['stela solar activity','GMAT solar activity'])
 CL_g_stdaxes();
@@ -171,7 +171,7 @@ title('Evolution of the MLTAN during the TOLOSAT mission')
 ylabel('MLTAN [hours]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
-scf(1).figure_size=[3840,2160]
+scf(1).figure_size=[3840,2160];
 xs2png(1,'long_term_orbit.png');
 
 scf(2);
@@ -183,7 +183,7 @@ title('Evolution of the eclipse duration during the TOLOSAT mission')
 ylabel('Eclipse duration [mins]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
-scf(2).figure_size=[3840,2160]
+scf(2).figure_size=[3840,2160];
 xs2png(2,'long_term_eclipses.png');
 
 

@@ -122,7 +122,7 @@ end
 // PLOTS OF THE ORBIT EVOLUTION
 // =====================================================
 
-scf();
+scf(1);
 subplot(231)
 plot(cjd_stela-cjd0,sma_stela - %CL_eqRad, 'b')
 //plot(cjd_stela-cjd0,mean_kep_stela_nm(1,:) - %CL_eqRad, 'r')
@@ -167,14 +167,19 @@ ylabel('MLTAN [hours]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 
+scf(1).figure_size=[3840,2160]
+xs2png(1,'orbit_evolution_stela.png');
 
-scf();
+scf(2);
 plot(cjd_stela-cjd0,eclipse_duration_umb/60,'.','MarkerSize',2,'Color','Blue')
 title('Evolution of the eclipse duration during the TOLOSAT mission')
 //legend(['Conical umbra','Cylindrical umbra','Penumbra'])
 ylabel('Eclipse duration [mins]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
+
+scf(2).figure_size=[3840,2160]
+xs2png(2,'eclipses_evolution_stela.png');
 
 
 csvWrite(mean_kep_stela',"stela_mean_kep.csv")

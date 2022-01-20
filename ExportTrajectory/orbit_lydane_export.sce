@@ -95,7 +95,7 @@ Color=["blue","red","green","orange","purple"];
 legend_name=string(stela_selected_days);
 
 
-scf();
+scf(1);
 subplot(231)
 for ii=1:length(lydane_epochs_0)
     plot(lydane_cjd(ii,:)-lydane_cjd(ii,1),lydane_sma(ii,:)- %CL_eqRad,"Color",Color(ii))
@@ -155,6 +155,9 @@ title('Mean Anomaly')
 ylabel('Mean Anomaly (deg)')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
+
+scf(1).figure_size=[3840,2160]
+xs2png(1,'orbit_evolution_lydane.png');
 
 for ii=1:length(lydane_epochs_0)
     csvWrite([(lydane_cjd(ii,:)'-lydane_cjd(ii,1))*86400,sun_x_eci(ii,:)',sun_y_eci(ii,:)',sun_z_eci(ii,:)'],strcat(['sun_eci_',string(stela_selected_days(ii)),'.csv']))
