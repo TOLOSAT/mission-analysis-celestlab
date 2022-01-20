@@ -171,7 +171,7 @@ title('Evolution of the MLTAN during the TOLOSAT mission')
 ylabel('MLTAN [hours]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
-
+scf(1).figure_size=[3840,2160]
 xs2png(1,'long_term_orbit.png');
 
 scf(2);
@@ -183,7 +183,7 @@ title('Evolution of the eclipse duration during the TOLOSAT mission')
 ylabel('Eclipse duration [mins]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
-
+scf(2).figure_size=[3840,2160]
 xs2png(2,'long_term_eclipses.png');
 
 
