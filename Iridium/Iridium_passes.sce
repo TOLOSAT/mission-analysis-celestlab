@@ -9,9 +9,10 @@ CL_init();
 // with these settings it takes my computer 4 minutes to run the code
 // but running over longer durations yields much more statistically interesting results
 time_step = 5/86400;   // in days
-duration = 1*24/24; // in days
+duration = 6/24; // in days
 min_pass_duration_s = 15;
 min_pass_size = ceil(15/(time_step*86400));
+OrbitType = "SSO"; // or "ISS" or "ISSlow"
 
 t0 = CL_dat_cal2cjd(2017,01,16,12,0,0); //CL_dat_cal2cjd(2024,07,02,12,0,0); //year, month day;    // initial time
 t = t0 + (0:time_step:duration) ;
@@ -19,35 +20,45 @@ freq_emission = 1617.e6;
 Delta_doppler_max = 345; // +/- 345Hz/s max Doppler rate (time-derivative of Doppler Shift)
 doppler_max = 35000; // Hz
 
-//= = = = = = = = = = = = = = = = = = = = = = =  generer la constellation  = = = = = = = = = = = = = = = = = = = = = = =  
+//= = = = = = = = = = = = = = = = = = = = = = =  generate the constellation  = = = = = = = = = = = = = = = = = = = = = = =  
 
 [kepConst, sat_angle_lim, cen_angle_lim, freq_emission_const, freq_reception_const] = generate_constellation("IridiumNext");
 
 
-//= = = = = = = = = = = = = = = = = = = = = = =  generation satellite  = = = = = = = = = = = = = = = = = = = = = = =  
+//= = = = = = = = = = = = = = = = = = = = = = =  generate the satellite  = = = = = = = = = = = = = = = = = = = = = = =  
 
-//  ==>  ==>  ==>  ==>  ==>  ==>  ==>  ==>  Polar orbit 
+// default : SSO 500km sunrise-sunset
+sma = 6878.e3; // semi-major axis(m)
+ecc = 2.e-3; // eccentricity ()
+inc = 97.4*%CL_deg2rad; // inclination (rad)
+aop = 1.570796327; // argument of perigee (rad)
+ltan = 6; // mean local time at ascending node (hours)
+raan = 3.3392258; // raan at 2024-07-02 12:00:00 to get 6h LTAN
+ma = 0; // mean anomaly (rad)
+if OrbitType == "ISS" then
+    sma = 6378.e3+415.e3; 
+    inc = 51.6*%CL_deg2rad;
+elseif OrbitType == "ISSlow" then
+    sma = 6378.e3+370.e3; 
+    inc = 51.6*%CL_deg2rad;
+elseif OrbitType == "SSO" then
+    sma = 6878.e3   //sma 
+    ecc = 2.e-3; //0.0253508
+    inc = 97.4*%CL_deg2rad
+    aop = 1.570796327;
+    ltan = 6; // MLTAN (hours)
+    raan = 3.3392258; // raan at 2024-07-02 12:00:00 to get 6h LTAN
+    ma = 0;
+end
 
-sma = 6748.e3 //6878.e3   //sma 
-ecc = 2.e-3 //0.0253508
-inc = 51.6*%CL_deg2rad //97.4*%CL_deg2rad
-pom = 1.570796327;
-mlh = 6; // MLTAN (hours)
-gom = 3.3392258;
-anm = 0;
-kep_mean_ini = [  sma;     // demi grand axe (m)
-ecc;     // excentricité
-inc;     // inclinaison (rad)
-pom;     // argument du périastre, petit omega (rad)
-gom;     // longitude du noeud ascendant raan (rad)  
-anm] 
-
+kep_mean_ini = [sma; ecc; inc; aop; raan; ma];
 T = 2*%pi*sqrt(sma^3/%CL_mu);
 
 // the value 62.9deg below comes from the Iridium satellite half cone opening angle IIRC
 min_el_for_vizi_deg = %CL_rad2deg * acos(sin(62.9*%CL_deg2rad)*kepConst(1,1)/sma); // about 23deg
 
 //= = = = = = = = = = = = = = = = = = = = = = =  generation  = = = = = = = = = = = = = = = = = = = = = = =  
+printf("\nGenerating TOLOSAT orbit . . .\n");
 
 kep_sat = CL_ex_secularJ2(t0,kep_mean_ini,t); 
 t_since_periapsis = pmodulo((t-t0)*86400,T);
@@ -70,6 +81,7 @@ doppler_shifts = zeros(m,length(t)); // HZ
 doppler_rates = zeros(m,length(t)); // Hz/s
 
 // constellation propagation
+printf("Generating IRIDIUM orbits . . .\n");
 kepConstIridium = zeros(n, m, length(t));
 for k=1:m
     kepConstIridium(:,k,:) = CL_ex_secularJ2(t0, kepConst(:,k), t);
@@ -78,6 +90,7 @@ end
 // LOOP ON TIME
 // positions have been precalculated
 // calcs elevation and doppler shift
+printf("Starting time loop . . . \n");
 for l=1:j // (lowercase L), t = t0+dt*l
     // get params of all iridium sats at tl
     kep = kepConstIridium(:,:,l);
@@ -100,6 +113,7 @@ for l=1:j // (lowercase L), t = t0+dt*l
     t1=t1+time_step;
 end
 // second loop : just to compute doppler rates a fortiori using centered numerical derivative scheme (where possible)
+printf("Calculating doppler rates . . . \n");
 for k=1:m
     doppler_rates(k,1) = (doppler_shifts(k,2)-doppler_shifts(k,1))/(time_step*86400);
     for l=2:(j-1)
@@ -110,74 +124,19 @@ end
 
 //= = = = = = = = = = = = = = = = = = = = = = =  exploitation  = = = = = = = = = = = = = = = = = = = = = = =
 
-// visibility of each sat at each time step
 is_visible = (elevations_over_t >= min_el_for_vizi_deg & ... 
               abs(doppler_shifts) <= doppler_max & ...
               abs(doppler_rates) <= Delta_doppler_max)*1; // 0s and 1s
 
+// example_pass = struct('start_date_cjd', t(100), 'end_date_cjd', t(106), 'sat_number', 46);
+ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s);
 
-// statistics on iridium passes
-// 1. pass structure definition
-example_pass = struct('start_date_cjd', t(100), 'end_date_cjd', t(106), 'sat_number', 46);
-// 2. helper functions
-function pass_duration = IridiumPassDuration_s(IridiumPass)
-    pass_duration = (IridiumPass.end_date_cjd - IridiumPass.start_date_cjd)*86400;
-endfunction
-// 3. get all passes
-ordered_pass_list = list(); // dimension 1 is sat number, dim 2 is time
-for k=1:m
-    ordered_pass_list($+1) = list();
-end
-for l_start = 2:j // loop on pass start time
-    for k=1:m // loop on sat number
-        if (is_visible(k,l_start) & ~is_visible(k,l_start-1)) // rising edge detected
-            // now search for falling edge (or end of data)
-            maybe_end_l = l_start;
-            while ((maybe_end_l <= j) & is_visible(k,maybe_end_l))
-                maybe_end_l = maybe_end_l + 1;
-            end
-            // now maybe_end_l is either j+1 or the true end index of the pass
-            l_end = maybe_end_l - 1;
-            // l_start is the first index where the sat is visible. 
-            // l_end is the last index where the sat is visible.
-            // we ignore passes that are shorter than min_pass_duration
-            if (l_end-l_start)*time_step*86400 < min_pass_duration_s
-                continue
-            end
-            // keep this pass if another pass is not already happening
-            if sum(is_visible(:,l_start)) < 1.5
-                pass = struct('start_date_cjd', t(l_start), 'end_date_cjd', t(l_end), 'sat_number', k);
-                ordered_pass_list(k)($+1) = pass;
-            end
-        end
-    end
-end
-// 4. statistics of passes
-N_passes = 0;
-avg_duration_s = 0;
-max_duration_s = 0;
-min_duration_s = 99999999;
-total_duration_s = 0;
-all_passes = list(); // unordered 1D list
-for k=1:m
-    for p=1:length(ordered_pass_list(k))
-        N_passes = N_passes+1;
-        pass = ordered_pass_list(k)(p);
-        all_passes($+1) = pass;
-        dur = IridiumPassDuration_s(pass);
-        avg_duration_s = avg_duration_s + dur;
-        max_duration_s = max(max_duration_s, dur);
-        min_duration_s = min(min_duration_s, dur);
-        total_duration_s = total_duration_s + dur;
-    end
-end
-avg_duration_s = avg_duration_s/N_passes;
-mean_passes_per_day = N_passes/duration;
-printf('\n\n Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
-printf('    Max Pass Duration (s) : %f \n', max_duration_s);
-printf('    Min Pass Duration (s) : %f \n', min_duration_s);
+[mean_passes_per_day, avg_duration_s] = IridiumPassStatistics(ordered_pass_list);
+
+printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
 printf('    Mean Passes Per Day : %f \n', mean_passes_per_day);
-printf('    Mean Communication Time Per Day (min) : %f \n', total_duration_s/60/duration);
+printf('    Mean Communication Time Per Day (min) : %f \n', mean_passes_per_day*avg_duration_s/60);
+
 
 // compute expected number (in statistical sense) of  iridium satellites
 // that satisfy visibility + doppler shift + doppler rate constraints
@@ -229,10 +188,9 @@ set(gca(),'data_bounds',[-10, -0.2; 10+duration*24*60, 1.2])
 //    end
 //end
 
-
-duration_min = duration*24*60
-total_comm_time_min = sum(is_visible)*time_step*24*60
-comm_availability_ratio = total_comm_time_min/duration_min
+duration_min = duration*24*60;
+total_comm_time_min = sum(is_visible)*time_step*24*60;
+comm_availability_ratio = total_comm_time_min/duration_min;
 // TODO : get individual passes length
 scf()
 plot(MA_deg, is_visible)
@@ -271,16 +229,9 @@ title('Visible satellites ')
 CL_g_stdaxes()
 
 raans = kep_sat(5,:);
-smas = kep_sat(1,:);
 scf()
 plot(t-t0, raans)
 xlabel('mission elapsed time (days)')
 ylabel('RAAN [rad]')
 title('Right Ascension of Ascending node, 10 days at 370km 51.6deg')
-CL_g_stdaxes()
-scf()
-plot(t-t0, smas)
-xlabel('mission elapsed time (days)')
-ylabel('SMA [km]')
-title('SMA, 10 days at 370km 51.6deg')
 CL_g_stdaxes()
