@@ -58,7 +58,8 @@ params_stela.srp_coef = 1.8; // common value among spacecraft
 params_stela.zonal_maxDeg = 15; // maximum zonal terms for gravity harmonics
 params_stela.tesseral_maxDeg = 15; // maximum tesseral terms for gravity harmonics
 params_stela.drag_solarActivityType = 'variable'; // here we have to look for the predicted solar activity in 2024, I took one of the highest values 
-params_stela.solarActivityFile = 'G:\Mon Drive\Supaero Cours\TOLOSAT\stela_solar_activity.txt'; // predicted Geomagnetic index in 2024 same method as for the solar flux
+data_dir=strsubst(pwd(),"LongTermEclipses","Data");
+params_stela.solarActivityFile =strcat([data_dir,"\stela_solar_activity.txt"]); // predicted Geomagnetic index in 2024 same method as for the solar flux
 
 // Setup epochs vector
 params_stela.integrator_step = 2*%pi*sqrt(sma^3/%CL_mu); // exactly an orbit // 92*60; //92 minutes which is roughly an orbit
@@ -73,7 +74,6 @@ disp("Completed STELA propagation");
 
 //Propagation using GMAT's solar activity
 //params_stela_nm = params_stela;
-//params_stela_nm.solarActivityFile = 'G:\Mon Drive\Supaero Cours\TOLOSAT\acsol2022_2030.txt';
 //mean_kep_stela_nm = CL_stela_extrap("kep", cjd0, kep_mean_ini, cjd_stela, params_stela_nm, 'm');
 
 //Getting ready for the plots
