@@ -155,13 +155,17 @@ save("big_savefile.dat", "ordered_pass_list", "is_visible", "t", ...
 
 // = = = = = = = = = = = = = = = = = = = = = = =  visualisation  = = = = = = = = = = = = = = = = = = = = = = =
 
-scf()
+scf(1)
 plot((t-t0)*24*60, is_visible)
 xlabel('elapsed time (min)')
 ylabel('Visible satellites')
 title('Visible satellites ')
 CL_g_stdaxes()
 set(gca(),'data_bounds',[-10, -0.2; 10+duration*24*60, 1.2])
+
+scf(1).figure_size=[2000,1000];
+deletefile('visible_satellites_1.png')
+xs2png(1,'visible_satellites_1.png');
 
 // pass analytics 
 // plots elevation, doppler shift and doppler rate over time for each interesting pass
@@ -209,7 +213,7 @@ comm_availability_ratio = total_comm_time_min/duration_min;
 //title('Visible satellites ')
 //CL_g_stdaxes()
 //set(gca(),'data_bounds',[-5, -0.2; 115, 1.2])
-scf()
+scf(2)
 plot(aol*180/%pi, sum(is_visible,1))
 xlabel('argument of latitude [deg]')
 ylabel('Visible satellites')
@@ -217,19 +221,34 @@ title('Visible satellites ')
 CL_g_stdaxes()
 set(gca(),'data_bounds',[-5, -0.2; 365, 2.2])
 
-scf()
+scf(2).figure_size=[2000,1000];
+deletefile('visible_satellites_2.png')
+xs2png(2,'visible_satellites_2.png');
+
+
+scf(3)
 plot(aol((t-t0)*86400<T)*180/%pi, visi_sat_expected_over_aol, 'x')
 xlabel('argument of latitude [deg]')
 ylabel('Expected Number of Visible Satellites')
 title('Expected Visible Satellites, averaged over XX days, dt=XXs ')
 CL_g_stdaxes()
 set(gca(),'data_bounds',[-5, -0.2; 365, 1.2])
-scf()
+
+scf(3).figure_size=[2000,1000];
+deletefile('visible_satellites_3.png')
+xs2png(3,'visible_satellites_3.png');
+
+
+scf(4)
 plot(t-t0, sum(is_visible, 1))
 xlabel('mission elapsed time (days)')
 ylabel('Visible satellites')
 title('Visible satellites ')
 CL_g_stdaxes()
+
+scf(4).figure_size=[2000,1000];
+deletefile('visible_satellites_4.png')
+xs2png(3,'visible_satellites_4.png');
 
 //raans = kep_sat(5,:);
 //scf()
