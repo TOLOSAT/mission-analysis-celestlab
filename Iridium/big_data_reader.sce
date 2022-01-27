@@ -1,6 +1,6 @@
 load("big_savefile.dat");
 
-duration = t($);
+duration = t($)-t(1);
 [mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatistics(ordered_pass_list, duration);
 
 printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
