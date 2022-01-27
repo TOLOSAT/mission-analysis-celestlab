@@ -131,12 +131,11 @@ is_visible = (elevations_over_t >= min_el_for_vizi_deg & ...
 // example_pass = struct('start_date_cjd', t(100), 'end_date_cjd', t(106), 'sat_number', 46);
 ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s);
 
-[mean_passes_per_day, avg_duration_s] = IridiumPassStatistics(ordered_pass_list);
+[mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatistics(ordered_pass_list, duration);
 
 printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
 printf('    Mean Passes Per Day : %f \n', mean_passes_per_day);
 printf('    Mean Communication Time Per Day (min) : %f \n', mean_passes_per_day*avg_duration_s/60);
-
 
 // compute expected number (in statistical sense) of  iridium satellites
 // that satisfy visibility + doppler shift + doppler rate constraints
@@ -150,15 +149,29 @@ for l=1:length(t((t-t0)*86400<T))
 end
 visi_sat_expected_over_aol = visi_sat_expected_over_aol./(duration.*86400./T);
 
+raans = kep_sat(5,:);
+save("big_savefile.dat", "ordered_pass_list", "is_visible", "t", ...
+     "raans", "aol", "visi_sat_expected_over_aol", "kepConstIridium");
+     
+// RAANs histogram data
+passRAANs = zeros(size(all_passes));
+for p=1:length(all_passes)
+    passRAANs(p) = raans(t==all_passes(p).start_date_cjd);
+end
+
 // = = = = = = = = = = = = = = = = = = = = = = =  visualisation  = = = = = = = = = = = = = = = = = = = = = = =
 
-scf()
+scf(1)
 plot((t-t0)*24*60, is_visible)
 xlabel('elapsed time (min)')
 ylabel('Visible satellites')
 title('Visible satellites ')
 CL_g_stdaxes()
 set(gca(),'data_bounds',[-10, -0.2; 10+duration*24*60, 1.2])
+
+scf(1).figure_size=[2000,1000];
+deletefile('visible_satellites_1.png')
+xs2png(1,'visible_satellites_1.png');
 
 // pass analytics 
 // plots elevation, doppler shift and doppler rate over time for each interesting pass
@@ -206,7 +219,7 @@ comm_availability_ratio = total_comm_time_min/duration_min;
 //title('Visible satellites ')
 //CL_g_stdaxes()
 //set(gca(),'data_bounds',[-5, -0.2; 115, 1.2])
-scf()
+scf(2)
 plot(aol*180/%pi, sum(is_visible,1))
 xlabel('argument of latitude [deg]')
 ylabel('Visible satellites')
@@ -214,19 +227,45 @@ title('Visible satellites ')
 CL_g_stdaxes()
 set(gca(),'data_bounds',[-5, -0.2; 365, 2.2])
 
-scf()
+scf(2).figure_size=[2000,1000];
+deletefile('visible_satellites_2.png')
+xs2png(2,'visible_satellites_2.png');
+
+
+scf(3)
 plot(aol((t-t0)*86400<T)*180/%pi, visi_sat_expected_over_aol, 'x')
 xlabel('argument of latitude [deg]')
 ylabel('Expected Number of Visible Satellites')
 title('Expected Visible Satellites, averaged over XX days, dt=XXs ')
 CL_g_stdaxes()
 set(gca(),'data_bounds',[-5, -0.2; 365, 1.2])
-scf()
+
+scf(3).figure_size=[2000,1000];
+deletefile('visible_satellites_3.png')
+xs2png(3,'visible_satellites_3.png');
+
+
+scf(4)
 plot(t-t0, sum(is_visible, 1))
 xlabel('mission elapsed time (days)')
 ylabel('Visible satellites')
 title('Visible satellites ')
 CL_g_stdaxes()
+
+scf(4).figure_size=[2000,1000];
+deletefile('visible_satellites_4.png')
+xs2png(4,'visible_satellites_4.png');
+
+scf(5)
+histplot(20, passRAANs*%CL_rad2deg, normalization=%f)
+xlabel('RAAN (deg)')
+ylabel('Number of passes')
+title('Pass rate dependency on RAAN')
+CL_g_stdaxes()
+
+scf(5).figure_size=[2000,1000];
+deletefile('visible_satellites_5.png')
+xs2png(5,'visible_satellites_5.png');
 
 //raans = kep_sat(5,:);
 //scf()

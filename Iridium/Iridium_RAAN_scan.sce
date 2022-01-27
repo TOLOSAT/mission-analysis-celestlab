@@ -61,71 +61,6 @@ aol = pmodulo(kep_sat(6,:) + kep_sat(4,:), 2*%pi); // mean argument of latitude 
 [i,j]=size(pos_sat);
 
 //= = = = = = = = = = = = = = = = = = = = = = =  simulation   = = = = = = = = = = = = = = = = = = = = = = =  
-// helper functions
-function pass_duration = IridiumPassDuration_s(IridiumPass)
-    pass_duration = (IridiumPass.end_date_cjd - IridiumPass.start_date_cjd)*86400;
-endfunction
-
-function ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s)
-    //inputs : visibility matrix (1s and 0s) for each sat and each time step
-    //         time step in days
-    //         minimum pass duration in seconds
-    //output : list of lists of passes. 1st dimension is satellite number, 2nd is time.
-    // passes are in the form example_pass = struct('start_date_cjd', t(100), 'end_date_cjd', t(106), 'sat_number', 46);
-    [m,j] = size(is_visible);
-    ordered_pass_list = list(); // dimension 1 is sat number, dim 2 is time
-    for k=1:m
-        ordered_pass_list($+1) = list();
-    end
-    for l_start = 2:j // loop on pass start time
-        for k=1:m // loop on sat number
-            if (is_visible(k,l_start) & ~is_visible(k,l_start-1)) // rising edge detected
-                // now search for falling edge (or end of data)
-                maybe_end_l = l_start;
-                while ((maybe_end_l <= j) & is_visible(k,maybe_end_l))
-                    maybe_end_l = maybe_end_l + 1;
-                end
-                // now maybe_end_l is either j+1 or the true end index of the pass
-                l_end = maybe_end_l - 1;
-                // l_start is the first index where the sat is visible. 
-                // l_end is the last index where the sat is visible.
-                // we ignore passes that are shorter than min_pass_duration
-                if (l_end-l_start)*time_step*86400 < min_pass_duration_s
-                    continue
-                end
-                // keep this pass if another pass is not already happening
-                if sum(is_visible(:,l_start)) < 1.5
-                    pass = struct('start_date_cjd', t(l_start), 'end_date_cjd', t(l_end), 'sat_number', k);
-                    ordered_pass_list(k)($+1) = pass;
-                end
-            end
-        end
-    end
-endfunction
-
-function [mean_passes_per_day, avg_duration_s] = IridiumPassStatistics(ordered_pass_list)
-    m=size(ordered_pass_list);
-    N_passes = 0;
-    avg_duration_s = 0;
-    max_duration_s = 0;
-    min_duration_s = 99999999;
-    total_duration_s = 0;
-    all_passes = list(); // unordered 1D list
-    for k=1:m
-        for p=1:length(ordered_pass_list(k))
-            N_passes = N_passes+1;
-            pass = ordered_pass_list(k)(p);
-            all_passes($+1) = pass;
-            dur = IridiumPassDuration_s(pass);
-            avg_duration_s = avg_duration_s + dur;
-            max_duration_s = max(max_duration_s, dur);
-            min_duration_s = min(min_duration_s, dur);
-            total_duration_s = total_duration_s + dur;
-        end
-    end
-    avg_duration_s = avg_duration_s/N_passes;
-    mean_passes_per_day = N_passes/duration;
-endfunction
 
 // initializations
 t1=t0;
@@ -190,7 +125,7 @@ for r=1:raan_points
                   abs(doppler_shifts) <= doppler_max & ...
                   abs(doppler_rates) <= Delta_doppler_max)*1; // 0s and 1s
     ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s)
-    [mean_passes_per_day, avg_duration_s] = IridiumPassStatistics(ordered_pass_list)
+    [mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatistics(ordered_pass_list, duration);
     printf('\n\n Delta RAAN : %f rad \n', r*2*%pi/raan_points);
     printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
     printf('    Mean Passes Per Day : %f \n', mean_passes_per_day);
