@@ -175,9 +175,10 @@ function ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_du
 endfunction
 
 
-function [mean_passes_per_day, avg_duration_s] = IridiumPassStatistics(ordered_pass_list)
-    // input : list of lists of passes, as outputted by GetIridiumPasses
-    // outputs : 2 scalars
+function [mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatistics(ordered_pass_list, duration)
+    // inputs : list of lists of passes, as outputted by GetIridiumPasses
+    //          duration of the simulation in days
+    // outputs : 2 scalars + a 1D list of passes in the same format
     m=size(ordered_pass_list);
     N_passes = 0;
     avg_duration_s = 0;

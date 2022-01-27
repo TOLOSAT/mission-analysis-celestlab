@@ -9,7 +9,7 @@ CL_init();
 // with these settings it takes my computer 4 minutes to run the code
 // but running over longer durations yields much more statistically interesting results
 time_step = 5/86400;   // in days
-duration = 70*24/24; // in days
+duration = 3/24; // in days
 min_pass_duration_s = 15;
 min_pass_size = ceil(15/(time_step*86400));
 OrbitType = "ISSlow"; // or "ISS" or "ISSlow"
@@ -131,7 +131,7 @@ is_visible = (elevations_over_t >= min_el_for_vizi_deg & ...
 // example_pass = struct('start_date_cjd', t(100), 'end_date_cjd', t(106), 'sat_number', 46);
 ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s);
 
-[mean_passes_per_day, avg_duration_s] = IridiumPassStatistics(ordered_pass_list);
+[mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatistics(ordered_pass_list, duration);
 
 printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
 printf('    Mean Passes Per Day : %f \n', mean_passes_per_day);
@@ -152,6 +152,12 @@ visi_sat_expected_over_aol = visi_sat_expected_over_aol./(duration.*86400./T);
 raans = kep_sat(5,:);
 save("big_savefile.dat", "ordered_pass_list", "is_visible", "t", ...
      "raans", "aol", "visi_sat_expected_over_aol", "kepConstIridium");
+     
+// RAANs histogram data
+passRAANs = zeros(size(all_passes));
+for p=1:length(all_passes)
+    passRAANs(p) = raans(t==all_passes(p).start_date_cjd);
+end
 
 // = = = = = = = = = = = = = = = = = = = = = = =  visualisation  = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -248,7 +254,18 @@ CL_g_stdaxes()
 
 scf(4).figure_size=[2000,1000];
 deletefile('visible_satellites_4.png')
-xs2png(3,'visible_satellites_4.png');
+xs2png(4,'visible_satellites_4.png');
+
+scf(5)
+histplot(20, passRAANs*%CL_rad2deg, normalization=%f)
+xlabel('RAAN (deg)')
+ylabel('Number of passes')
+title('Pass rate dependency on RAAN')
+CL_g_stdaxes()
+
+scf(5).figure_size=[2000,1000];
+deletefile('visible_satellites_5.png')
+xs2png(5,'visible_satellites_5.png');
 
 //raans = kep_sat(5,:);
 //scf()
