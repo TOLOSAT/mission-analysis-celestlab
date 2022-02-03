@@ -24,7 +24,7 @@ gom = CL_op_locTime(cjd0, "mlh", mlh, "ra");    // Right ascension (longitude) o
 anm = 0;                                        // Mean anomaly [rad]
 lydane_kep_ini = [sma;ecc;inc;pom;gom;anm]
 
-lydane_duration=5;
+lydane_duration=1;
 lydane_timestep=30/86400;
 lydane_cjd=cjd0+(0:lydane_timestep:lydane_duration);
 
@@ -62,49 +62,11 @@ lydane_pom = lydane_kep_results(4,:);                         // Argument of per
 lydane_RAAN = lydane_kep_results(5,:);                        // Right ascension of the ascending node (RAAN) [rad]
 lydane_M = lydane_kep_results(6,:);                           // Mean anomaly [rad]
 
-[sat_pos_tmp,sat_vel_tmp] = CL_oe_kep2car(lydane_kep_results);
+// Position and velocity in ECI
+[pos_eci, vel_eci] = CL_oe_kep2car(lydane_kep_results); 
 
-// ------------
-// HYPOTHESES
-// ------------
-// Date/time of frame supposed in TREF time scale: 
-t0 = CL_dat_cal2cjd(2012,12,1,6,0,0);
-
-// Longitude defining the X axis: 
-lon0 = -15 * %pi/180; 
-
-// Orbital elements (sma, ecc, inc, argp, raan, mean anomaly): 
-kep_launch = [7000.e3; 0.1; 1; 0; 0.1; 0];
-
-// Note that all frames are fixed with respect to each other
-// (All velocities are relative to ECI)  
-
-// Conversion to position and velocity:
-[pos_launch, vel_launch] = CL_oe_kep2car(kep_launch); 
-
-// Frame transformation matrix: ECF to "launch frame" at t0:
-M1 = CL_rot_angles2matrix(3, lon0); 
-
-// Frame transformation matrix: "ECF" to "ECI" at t0:
-M2 = CL_fr_convertMat("ECF", "ECI", t0); 
-
-// Composition of frame transformations (no relative angular velocities): 
-// "launch frame" -> ECF followed by:  ECF -> ECI
-[M, omega] = CL_rot_compose(M1, [0;0;0], -1, M2, [0;0;0], 1); 
-
-// omega is [0;0;0], but we can still use: 
-[pos_eci, vel_eci] = CL_rot_pvConvert(pos_launch, vel_launch, M, omega); 
-
-// Or:
-// M = M2*M1'
-// pos_eci = M * pos_launch 
-// vel_eci = M * vel_launch 
-
-// Convert to orbital elements: 
-kep_eci = CL_oe_car2kep(pos_eci, vel_eci); 
-
-disp(kep_eci);
-
+// Position in ECF
+pos_ecf = CL_fr_convert("ECI", "ECF", lydane_cjd, pos_eci); 
 
 
 // =====================================================
@@ -112,8 +74,16 @@ disp(kep_eci);
 // =====================================================
 
 scf(1);
-CL_plot_earthMap();
-
+CL_plot_earthMap(color_id=color("black"));
+// Plot ground tracks
+CL_plot_ephem(pos_ecf,color_id=color("blue"));
+title('TOLOSAT Ground Track')
+xlabel('Longitude (deg)')
+ylabel('Latitude (deg)')
+CL_g_stdaxes();
+scf(1).figure_size=[2000,1000];
+sleep(1000)
+xs2png(1,'ground_track_lydane.png');
 
 scf(2);
 subplot(231)
@@ -160,6 +130,7 @@ CL_g_stdaxes();
 
 scf(2).figure_size=[2000,1000];
 deletefile('orbit_evolution_lydane.png');
+sleep(1000)
 xs2png(2,'orbit_evolution_lydane.png');
 
 
