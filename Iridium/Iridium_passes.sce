@@ -129,7 +129,7 @@ is_visible = (elevations_over_t >= min_el_for_vizi_deg & ...
               abs(doppler_rates) <= Delta_doppler_max)*1; // 0s and 1s
 
 // example_pass = struct('start_date_cjd', t(100), 'end_date_cjd', t(106), 'sat_number', 46);
-ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s);
+ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s, t);
 
 [mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatistics(ordered_pass_list, duration);
 
