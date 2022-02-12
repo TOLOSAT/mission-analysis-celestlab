@@ -1,96 +1,146 @@
 // don't forget to run Fonction_iridium_utile.sce before running this ! 
 // you will need Celestlab and CelestlabX
+// this code took about 30 hours to run on my laptop
 
 clear all;
 CL_init();
 
 //= = = = = = = = = = = = = = = = = = = = = = =  Variables  = = = = = = = = = = = = = = = = = = = = = = =  
 
-// with these settings it takes my computer 4 minutes to run the code
-// but running over longer durations yields much more statistically interesting results
+// PASS STUDY SETTINGS
 time_step = 5/86400;   // in days
-duration = 12/24; // in days
+duration = 24/24; // in days
 min_pass_duration_s = 15;
 min_pass_size = ceil(15/(time_step*86400));
-raan_points = 20;
-
-t0 = CL_dat_cal2cjd(2017,01,16,12,0,0); //CL_dat_cal2cjd(2024,07,02,12,0,0); //year, month day;    // initial time
-t = t0 + (0:time_step:duration) ;
+OrbitType = "SSO"; // "SSO" or "ISS" or "ISSlow"
 freq_emission = 1617.e6;
 Delta_doppler_max = 345; // +/- 345Hz/s max Doppler rate (time-derivative of Doppler Shift)
 doppler_max = 35000; // Hz
+// RAAN SCAN SETTINGS
+raan_points = 73; 
+total_duration = 365; // days
+dt_coarse = total_duration / raan_points; // days
+t0 = CL_dat_cal2cjd(2017,01,16,12,0,0); //CL_dat_cal2cjd(2024,07,02,12,0,0); //year, month day;    // initial time
+t_coarse = t0 + (0:dt_coarse:total_duration);
 
-//= = = = = = = = = = = = = = = = = = = = = = =  generer la constellation  = = = = = = = = = = = = = = = = = = = = = = =  
 
+//= = = = = = = = = = = = = = = = = = = = = = =  generate the constellation  = = = = = = = = = = = = = = = = = = = = = = 
 [kepConst, sat_angle_lim, cen_angle_lim, freq_emission_const, freq_reception_const] = generate_constellation("IridiumNext");
 
+//= = = = = = = = = = = = = = = = = = = = = = =  generate the satellite  = = = = = = = = = = = = = = = = = = = = = = =  
+// default : SSO 500km sunrise-sunset
+sma = 6878.e3; // semi-major axis(m)
+ecc = 2.e-3; // eccentricity ()
+inc = 97.4*%CL_deg2rad; // inclination (rad)
+aop = 1.570796327; // argument of perigee (rad)
+ltan = 6; // mean local time at ascending node (hours)
+raan = 3.3392258; // raan at 2024-07-02 12:00:00 to get 6h LTAN
+ma = 0; // mean anomaly (rad)
+if OrbitType == "ISS" then
+    sma = 6378.e3+415.e3; 
+    inc = 51.6*%CL_deg2rad;
+elseif OrbitType == "ISSlow" then
+    sma = 6378.e3+370.e3; 
+    inc = 51.6*%CL_deg2rad;
+elseif OrbitType == "SSO" then
+    sma = 6878.e3   //sma 
+    ecc = 2.e-3; //0.0253508
+    inc = 97.4*%CL_deg2rad
+    aop = 1.570796327;
+    ltan = 6; // MLTAN (hours)
+    raan = 3.3392258; // raan at 2024-07-02 12:00:00 to get 6h LTAN
+    ma = 0;
+end
 
-//= = = = = = = = = = = = = = = = = = = = = = =  generation satellite  = = = = = = = = = = = = = = = = = = = = = = =  
-
-//  ==>  ==>  ==>  ==>  ==>  ==>  ==>  ==>  Polar orbit 
-
-sma = 6748.e3 //6878.e3   //sma 
-ecc = 2.e-3 //0.0253508
-inc = 51.6*%CL_deg2rad //97.4*%CL_deg2rad
-pom = 1.570796327;
-mlh = 6; // MLTAN (hours)
-gom = 3.3392258;
-anm = 0;
-kep_mean_ini = [  sma;     // demi grand axe (m)
-ecc;     // excentricité
-inc;     // inclinaison (rad)
-pom;     // argument du périastre, petit omega (rad)
-gom;     // longitude du noeud ascendant raan (rad)  
-anm] 
-
+kep_mean_ini = [sma; ecc; inc; aop; raan; ma];
 T = 2*%pi*sqrt(sma^3/%CL_mu);
 
 // the value 62.9deg below comes from the Iridium satellite half cone opening angle IIRC
 min_el_for_vizi_deg = %CL_rad2deg * acos(sin(62.9*%CL_deg2rad)*kepConst(1,1)/sma); // about 23deg
 
-//= = = = = = = = = = = = = = = = = = = = = = =  generation  = = = = = = = = = = = = = = = = = = = = = = =  
 
-kep_sat = CL_ex_secularJ2(t0,kep_mean_ini,t); 
-t_since_periapsis = pmodulo((t-t0)*86400,T);
-MA_deg = t_since_periapsis*360/T;
-aol = pmodulo(kep_sat(6,:) + kep_sat(4,:), 2*%pi); // mean argument of latitude is the interesting parameter
+//= = = = = = = = = = = = = = = = = = = = = = =  coarse simulation  = = = = = = = = = = = = = = = = = = = = = = =  
 
-//convertion to cartesian position and velocity:
-[pos_sat, vel_sat] = CL_oe_kep2car(kep_sat);
-[pos_sat,vel_sat]= CL_fr_convert("ECI", "ECF", t, pos_sat,[vel_sat]);
-[i,j]=size(pos_sat);
+disp("Setting up STELA parameters");
+params_stela =  CL_stela_params(); 
+params_stela.mass = 2.66; // TOLOSAT's mass
+params_stela.drag_coef = 2.2;
+params_stela.drag_area = 0.025;// Area assuming random tumbling of the spacecraft
+params_stela.srp_area = 0.025; // also tumbling area
+params_stela.srp_coef = 1.8; // common value among spacecraft
+//SETUP of the FORCE MODEL
+params_stela.zonal_maxDeg = 15; // maximum zonal terms for gravity harmonics
+params_stela.tesseral_maxDeg = 15; // maximum tesseral terms for gravity harmonics
+params_stela.drag_solarActivityType = 'variable'; // here we have to look for the predicted solar activity in 2024, I took one of the highest values 
+data_dir=strsubst(pwd(),"Iridium","Data");
+params_stela.solarActivityFile =strcat([data_dir,"\stela_solar_activity.txt"]); // predicted Geomagnetic index in 2024 same method as for the solar flux
+// Setup epochs vector
+day_fraction = 16;
+params_stela.integrator_step = 86400/day_fraction; // 1/16th of a day. 
+step_stela= (params_stela.integrator_step)/86400; // propagation step in days
+cjd_stela = t0 + (0:step_stela:total_duration);
 
-//= = = = = = = = = = = = = = = = = = = = = = =  simulation   = = = = = = = = = = = = = = = = = = = = = = =  
+//Propagation with default solar activity
+disp("Beginning STELA propagation\n");
+coarse_kep_stela = CL_stela_extrap("kep", t0, kep_mean_ini, cjd_stela, params_stela, 'm');
+disp("Completed STELA propagation\n");
+// keep only the points at the start of each precise study
+coarse_t = cjd_stela(1:(dt_coarse*day_fraction):$); // verification, this should equal t_coarse
+coarse_kep_sat = coarse_kep_stela(:,1:(dt_coarse*day_fraction):$);
 
-// initializations
-t1=t0;
-t1_old = t1;
+// every fine time-point
+ti = t_coarse(1);
+t_fine = ti + (0:time_step:duration);
+t_all = zeros(1, raan_points*length(t_fine)); 
+fine_points = length(t_fine);
+
+disp("Propagating sat in fine mode. . . ");
 [n, m] = size(kepConst); // n=6 orbital elements, m=75 satellites
-elevations_over_t = zeros(m,length(t)); //deg
-doppler_shifts = zeros(m,length(t)); // HZ
-doppler_rates = zeros(m,length(t)); // Hz/s
-
-// constellation propagation
-kepConstIridium = zeros(n, m, length(t));
-for k=1:m
-    kepConstIridium(:,k,:) = CL_ex_secularJ2(t0, kepConst(:,k), t);
+all_kep_sat = zeros(n, length(t_all));
+for r=1:raan_points
+    ti = t_coarse(r);
+    t_fine = ti + (0:time_step:duration);
+    t_all(((r-1)*fine_points+1):(r*fine_points)) = t_fine;
+    fine_kep_sat = CL_ex_secularJ2(ti, coarse_kep_sat(:,r), t_fine);
+    all_kep_sat(:,((r-1)*fine_points+1):(r*fine_points)) = fine_kep_sat;
 end
 
-// ANCHOR TODO : add a loop on RAAN around this, then plot passes/day as a func of RAAN
-// RAAN can be modified by just adding a constant to kep_sat(5,:)
-// have to re-run lines 58 and 59
-// LOOP ON INITIAL RAAN
-pass_rate = [];
-pass_lens = [];
+// J2 prop the constellation and sat over 1 year to get kep at each study point
+disp("Propagating constellation in fine+coarse mode . . . ");
+all_kep_iridium = zeros(n, m, length(t_all));
+for k=1:m
+    all_kep_iridium(:,k,:) = CL_ex_secularJ2(t0, kepConst(:,k), t_all);
+end
+
+disp("starting raan loop . . .");
+// ====  RAAN LOOP  =====
+pass_rate = zeros(1,raan_points);
+pass_lens = zeros(1,raan_points);
 all_ordered_passes = list();
 for r=1:raan_points
-    kep_sat(5,:)=kep_sat(5,:)+2*%pi/raan_points;
-    [pos_sat, vel_sat] = CL_oe_kep2car(kep_sat);
-    [pos_sat,vel_sat]= CL_fr_convert("ECI", "ECF", t, pos_sat,[vel_sat]);
+    // TODO : initialize whatever 
+    ti = t_coarse(r);
+    t_fine = ti + (0:time_step:duration);
+    
+    // get fine time data of the sat and iridium
+    fine_kep_sat = all_kep_sat(:,((r-1)*fine_points+1):(r*fine_points));
+    [pos_sat, vel_sat] = CL_oe_kep2car(fine_kep_sat);
+    [pos_sat,vel_sat]= CL_fr_convert("ECI", "ECF", t_fine, pos_sat,[vel_sat]);
+    [i,j]=size(pos_sat);
+    kepConstIridium = zeros(n, m, length(t_fine));
+    for k=1:m
+        kepConstIridium(:,k,:) = all_kep_iridium(:,k,((r-1)*fine_points+1):(r*fine_points));
+    end
+    
+    // initializations
+    elevations_over_t = zeros(m,length(t_fine)); //deg
+    doppler_shifts = zeros(m,length(t_fine)); // HZ
+    doppler_rates = zeros(m,length(t_fine)); // Hz/s
 
     // LOOP ON TIME
     // positions have been precalculated
     // calcs elevation and doppler shift
+    t1 = ti;
     for l=1:j // (lowercase L), t = t0+dt*l
         // get params of all iridium sats at tl
         kep = kepConstIridium(:,:,l);
@@ -124,91 +174,49 @@ for r=1:raan_points
     is_visible = (elevations_over_t >= min_el_for_vizi_deg & ... 
                   abs(doppler_shifts) <= doppler_max & ...
                   abs(doppler_rates) <= Delta_doppler_max)*1; // 0s and 1s
-    ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s)
+    ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s, t_fine);
     [mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatistics(ordered_pass_list, duration);
-    printf('\n\n Delta RAAN : %f rad \n', r*2*%pi/raan_points);
+    printf('point number %f : \n', r);
     printf(' Statistics : \n    Mean Pass Duration (s) : %f \n', avg_duration_s);
     printf('    Mean Passes Per Day : %f \n', mean_passes_per_day);
     // save them
-    pass_rate($+1) = mean_passes_per_day;
-    pass_lens($+1) = avg_duration_s;
-    all_ordered_passes($+1) = ordered_pass_list;
+    pass_rate(r) = mean_passes_per_day;
+    pass_lens(r) = avg_duration_s;
+    all_ordered_passes($+1) = ordered_pass_list; // list of lists of lists (raan then sat then time)
 end
 
-delta_raans = (1:raan_points)*2*%pi/raan_points;
+// SAVE DATA
+save("raan_scan_results.dat", "t_all", "all_kep_iridium", ...
+     "all_kep_sat", "pass_rate", "pass_lens", "all_ordered_passes", ...
+     "fine_points", "raan_points", "kep_mean_ini", ...
+     "time_step", "duration", "total_duration");
+
+raan_starts = coarse_kep_sat(5,1:$-1);
+diffraan = raan_starts - matrix(all_kep_iridium(5,1,1:fine_points:$), [1 raan_points]);
+comms_time = pass_rate.*pass_lens;
 scf()
-plot(delta_raans/(2*%pi), pass_rate)
-xlabel('RAAN shift (*2pi rad)')
+plot(raan_starts, pass_rate)
+xlabel('RAAN [rad]')
 ylabel('Mean passes per day')
-title('Effect of RAAN on pass rate (dt=5s, 12 hour integration per point')
+title('Effect of RAAN on pass rate (dt=5s, 24 hour integration per point)')
 CL_g_stdaxes()
 scf()
-plot(delta_raans/(2*%pi), pass_lens)
-xlabel('RAAN shift (*2pi rad)')
+plot(diffraan, pass_rate)
+xlabel('RAAN_sat - RAAN_Iridium1 [rad]')
+ylabel('Mean passes per day')
+title('Effect of RAAN difference on pass rate (dt=5s, 24 hour integration per point)')
+CL_g_stdaxes()
+scf()
+plot(raan_starts, pass_lens)
+xlabel('RAAN [rad]')
 ylabel('Mean pass duration (s)')
-title('Effect of RAAN on pass duration (dt=5s, 12 hour integration per point')
+title('Effect of RAAN on pass duration (dt=5s, 12 hour integration per point)')
 CL_g_stdaxes()
-
-//= = = = = = = = = = = = = = = = = = = = = = =  exploitation  = = = = = = = = = = = = = = = = = = = = = = =
-
-// compute expected number (in statistical sense) of  iridium satellites
-// that satisfy visibility + doppler shift + doppler rate constraints
-// as a function of AoL (argument of latitude, = omega + TA)
-// objective : show that some geographic areas are more favorable to communication
-visi_sat_expected_over_aol = zeros(1, length(t((t-t0)*86400<T)));
-daol = time_step*86400*2*%pi/T;
-for l=1:length(t((t-t0)*86400<T))
-    myaol = aol(1,l);
-    visi_sat_expected_over_aol(1,l) = sum(is_visible(:,(myaol <= aol & (aol < (myaol+daol))) ));
-end
-visi_sat_expected_over_aol = visi_sat_expected_over_aol./(duration.*86400./T);
-
-// = = = = = = = = = = = = = = = = = = = = = = =  visualisation  = = = = = = = = = = = = = = = = = = = = = = =
 
 scf()
-plot((t-t0)*24*60, is_visible)
-xlabel('elapsed time (min)')
-ylabel('Visible satellites')
-title('Visible satellites ')
+plot(diffraan, comms_time/60)
+xlabel('RAAN_sat - RAAN_Iridium1 [rad]')
+ylabel('Comms time per day [min/day]')
+title('Effect of RAAN difference on total communication time (dt=5s, 24 hour integration per point)')
 CL_g_stdaxes()
-set(gca(),'data_bounds',[-10, -0.2; 10+duration*24*60, 1.2])
 
-duration_min = duration*24*60
-total_comm_time_min = sum(is_visible)*time_step*24*60
-comm_availability_ratio = total_comm_time_min/duration_min
-// TODO : get individual passes length
-//scf()
-//plot(MA_deg, is_visible)
-//xlabel('mean anomaly (deg)')
-//ylabel('Visible satellites')
-//title('Visible satellites ')
-//CL_g_stdaxes()
-//set(gca(),'data_bounds',[-5, -0.2; 365, 1.2])
-//scf()
-//plot(t_since_periapsis/60, is_visible)
-//xlabel('time since periapsis [min]')
-//ylabel('Visible satellites')
-//title('Visible satellites ')
-//CL_g_stdaxes()
-//set(gca(),'data_bounds',[-5, -0.2; 115, 1.2])
-scf()
-plot(aol*180/%pi, sum(is_visible,1))
-xlabel('argument of latitude [deg]')
-ylabel('Visible satellites')
-title('Visible satellites ')
-CL_g_stdaxes()
-set(gca(),'data_bounds',[-5, -0.2; 365, 2.2])
-
-scf()
-plot(aol((t-t0)*86400<T)*180/%pi, visi_sat_expected_over_aol, 'x')
-xlabel('argument of latitude [deg]')
-ylabel('Expected Number of Visible Satellites')
-title('Expected Visible Satellites, averaged over XX days, dt=XXs ')
-CL_g_stdaxes()
-set(gca(),'data_bounds',[-5, -0.2; 365, 1.2])
-scf()
-plot(t-t0, sum(is_visible, 1))
-xlabel('mission elapsed time (days)')
-ylabel('Visible satellites')
-title('Visible satellites ')
-CL_g_stdaxes()

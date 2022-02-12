@@ -137,7 +137,7 @@ function is_visible = visibility_matrix(elevations_over_t, doppler_shifts, doppl
                   abs(doppler_rates) <= Delta_doppler_max)*1; // 0s and 1s
 endfunction
 
-function ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s)
+function ordered_pass_list = GetIridiumPasses(is_visible, time_step, min_pass_duration_s, t)
     //inputs : visibility matrix (1s and 0s) for each sat and each time step
     //         time step in days
     //         minimum pass duration in seconds
