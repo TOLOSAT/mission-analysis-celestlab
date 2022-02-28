@@ -179,6 +179,9 @@ function [mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatisti
     // inputs : list of lists of passes, as outputted by GetIridiumPasses
     //          duration of the simulation in days
     // outputs : 2 scalars + a 1D list of passes in the same format
+    if duration <=0 then
+        duration = abs(duration)+1/86400;
+    end
     m=size(ordered_pass_list);
     N_passes = 0;
     avg_duration_s = 0;
@@ -198,6 +201,10 @@ function [mean_passes_per_day, avg_duration_s, all_passes] = IridiumPassStatisti
             total_duration_s = total_duration_s + dur;
         end
     end
-    avg_duration_s = avg_duration_s/N_passes;
+    if N_passes == 0 then
+        avg_duration_s = 0;
+    else
+        avg_duration_s = avg_duration_s/N_passes;
+    end
     mean_passes_per_day = N_passes/duration;
 endfunction
