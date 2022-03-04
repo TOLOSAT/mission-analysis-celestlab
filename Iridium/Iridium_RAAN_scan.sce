@@ -1,6 +1,8 @@
 // don't forget to run Fonction_iridium_utile.sce before running this ! 
 // you will need Celestlab and CelestlabX
-// this code took about 30 hours to run on my laptop
+// this code took about 30 hours to run on my laptop. 
+// you can instead download the results file and run raan_scan_reader.sce :
+// https://drive.google.com/file/d/1g8aMo6MjvdOkx0f7Ck0Oa229smp0ic3G/view?usp=sharing
 
 clear all;
 CL_init();
