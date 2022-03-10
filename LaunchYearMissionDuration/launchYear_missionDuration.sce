@@ -74,7 +74,7 @@ params_stela.solarActivityFile =strcat([data_dir,"\stela_solar_activity.txt"]); 
 params_stela.integrator_step = 2*%pi*sqrt(sma^3/%CL_mu); // exactly an orbit // 92*60; //92 minutes which is roughly an orbit
 step_stela= (params_stela.integrator_step)/86400; // propagation step in days
 for ii=1:length(years)
-    cjd_stela(ii,:)=cjd0(ii)+(0:step_stela:1600);
+    cjd_stela(ii,:)=cjd0(ii)+(0:step_stela:3000);
 end
 
 
@@ -115,7 +115,7 @@ disp("Completed STELA propagation");
 scf(1);
 subplot(231)
 for ii=1:length(years)
-    plot(cjd_stela-cjd0,sma_stela - %CL_eqRad, 'b')
+    plot(cjd_stela(ii,:)-cjd0(ii,:),sma_stela(ii,:) - %CL_eqRad, 'b')
 end
 title('Altitude decay with STELA propagation')
 xlabel('Elapsed days since launch') 
