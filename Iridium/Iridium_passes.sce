@@ -6,15 +6,15 @@ CL_init();
 
 //= = = = = = = = = = = = = = = = = = = = = = =  Variables  = = = = = = = = = = = = = = = = = = = = = = =  
 
-// with these settings it takes my computer 4 minutes to run the code
+// with these settings it takes my computer 16 minutes to run the code
 // but running over longer durations yields much more statistically interesting results
 time_step = 5/86400;   // in days
-duration = 6/24; // in days
+duration = 24/24; // in days
 min_pass_duration_s = 15;
 min_pass_size = ceil(15/(time_step*86400));
 OrbitType = "SSO"; // or "ISS" or "ISSlow"
 
-t0 = CL_dat_cal2cjd(2024,07,02,12,0,0); //year, month day;    // initial time
+t0 = CL_dat_cal2cjd(2024,04,02,12,0,0); //year, month day;    // initial time
 t = t0 + (0:time_step:duration) ;
 freq_emission = 1617.e6;
 Delta_doppler_max = 345; // +/- 345Hz/s max Doppler rate (time-derivative of Doppler Shift)
@@ -47,7 +47,8 @@ elseif OrbitType == "SSO" then
     inc = 97.4*%CL_deg2rad
     aop = 1.570796327;
     ltan = 6; // MLTAN (hours)
-    raan = 3.3392258; // raan at 2024-07-02 12:00:00 to get 6h LTAN
+    raan = CL_op_locTime(t0, 'mlh', ltan, 'ra') // using mean local time in hours
+    // raan = 3.3392258; // raan at 2024-07-02 12:00:00 to get 6h LTAN
     ma = 0;
 end
 
@@ -111,6 +112,9 @@ for l=1:j // (lowercase L), t = t0+dt*l
     end 
     t1_old = t1;
     t1=t1+time_step;
+    if (pmodulo(t1-t0, 0.50) == 0) then
+        printf("%f days\n", t1-t0);
+    end
 end
 // second loop : just to compute doppler rates a fortiori using centered numerical derivative scheme (where possible)
 printf("Calculating doppler rates . . . \n");
@@ -219,17 +223,17 @@ comm_availability_ratio = total_comm_time_min/duration_min;
 //title('Visible satellites ')
 //CL_g_stdaxes()
 //set(gca(),'data_bounds',[-5, -0.2; 115, 1.2])
-scf(2)
-plot(aol*180/%pi, sum(is_visible,1))
-xlabel('argument of latitude [deg]')
-ylabel('Visible satellites')
-title('Visible satellites ')
-CL_g_stdaxes()
-set(gca(),'data_bounds',[-5, -0.2; 365, 2.2])
-
-scf(2).figure_size=[2000,1000];
-deletefile('visible_satellites_2.png')
-xs2png(2,'visible_satellites_2.png');
+//scf(2)
+//plot(aol*180/%pi, sum(is_visible,1))
+//xlabel('argument of latitude [deg]')
+//ylabel('Visible satellites')
+//title('Visible satellites ')
+//CL_g_stdaxes()
+//set(gca(),'data_bounds',[-5, -0.2; 365, 2.2])
+//
+//scf(2).figure_size=[2000,1000];
+//deletefile('visible_satellites_2.png')
+//xs2png(2,'visible_satellites_2.png');
 
 
 scf(3)
@@ -245,27 +249,27 @@ deletefile('visible_satellites_3.png')
 xs2png(3,'visible_satellites_3.png');
 
 
-scf(4)
-plot(t-t0, sum(is_visible, 1))
-xlabel('mission elapsed time (days)')
-ylabel('Visible satellites')
-title('Visible satellites ')
-CL_g_stdaxes()
+//scf(4)
+//plot(t-t0, sum(is_visible, 1))
+//xlabel('mission elapsed time (days)')
+//ylabel('Visible satellites')
+//title('Visible satellites ')
+//CL_g_stdaxes()
+//
+//scf(4).figure_size=[2000,1000];
+//deletefile('visible_satellites_4.png')
+//xs2png(4,'visible_satellites_4.png');
 
-scf(4).figure_size=[2000,1000];
-deletefile('visible_satellites_4.png')
-xs2png(4,'visible_satellites_4.png');
-
-scf(5)
-histplot(20, passRAANs*%CL_rad2deg, normalization=%f)
-xlabel('RAAN (deg)')
-ylabel('Number of passes')
-title('Pass rate dependency on RAAN')
-CL_g_stdaxes()
-
-scf(5).figure_size=[2000,1000];
-deletefile('visible_satellites_5.png')
-xs2png(5,'visible_satellites_5.png');
+//scf(5)
+//histplot(20, passRAANs*%CL_rad2deg, normalization=%f)
+//xlabel('RAAN (deg)')
+//ylabel('Number of passes')
+//title('Pass rate dependency on RAAN')
+//CL_g_stdaxes()
+//
+//scf(5).figure_size=[2000,1000];
+//deletefile('visible_satellites_5.png')
+//xs2png(5,'visible_satellites_5.png');
 
 //raans = kep_sat(5,:);
 //scf()
