@@ -1,21 +1,22 @@
 load("raan_scan_results.dat");
 m = size(all_ordered_passes(1)); // 75 iridium sats
 
+t_starts = t_all(1:fine_points:$-1);
 raan_starts = all_kep_sat(5,1:fine_points:$-1);
 diffraan = raan_starts - matrix(all_kep_iridium(5,1,1:fine_points:$), [1 raan_points]);
 comms_time = pass_rate.*pass_lens;
 
 scf()
-plot(diffraan, pass_rate)
-xlabel('RAAN_sat - RAAN_Iridium1 [rad]')
+plot(pmodulo(diffraan, 2*%pi), pass_rate, 'bx')
+xlabel('RAAN_sat - RAAN_Iridium1 [rad] mod 2pi')
 ylabel('Mean passes per day')
 title('Effect of RAAN difference on pass rate (dt=5s, 24 hour integration per point)')
 CL_g_stdaxes()
 scf()
-plot(raan_starts, pass_lens)
-xlabel('RAAN [rad]')
-ylabel('Mean pass duration (s)')
-title('Effect of RAAN on pass duration (dt=5s, 12 hour integration per point)')
+plot(t_starts-t_starts(1), pass_rate)
+xlabel('Mission Elapsed time [days]')
+ylabel('Mean passes per day')
+title('Pass durations over 1 year (dt=5s, 24 hour integration per point)')
 CL_g_stdaxes()
 scf()
 plot(diffraan, comms_time/60)
