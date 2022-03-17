@@ -16,7 +16,7 @@ CL_init()
 // =====================================================
 
 // Starting epochs
-years=2024:2030
+years=2024:2036
 
 
 // Initial mean keplerian parameters corresponding to the Polar orbit
@@ -29,7 +29,7 @@ mlh = 6;                                        // MLTAN [hours]
 
 anm = 0;                                        // Mean anomaly [rad]
 cjd=zeros(length(years),1)
-kep_mean_ini=zeros(6,length(years)
+kep_mean_ini=zeros(6,length(years))
 for ii=1:length(years)
     cjd0(ii) = CL_dat_cal2cjd(years(ii),01,02,12,0,0);       // Julian date initial time [Julian days]
     gom = CL_op_locTime(cjd0(ii), "mlh", mlh, "ra");    // Right ascension (longitude) of the ascending node (RAAN) [rad]
@@ -74,7 +74,7 @@ params_stela.solarActivityFile =strcat([data_dir,"\stela_solar_activity.txt"]); 
 params_stela.integrator_step = 2*%pi*sqrt(sma^3/%CL_mu); // exactly an orbit // 92*60; //92 minutes which is roughly an orbit
 step_stela= (params_stela.integrator_step)/86400; // propagation step in days
 for ii=1:length(years)
-    cjd_stela(ii,:)=cjd0(ii)+(0:step_stela:1600);
+    cjd_stela(ii,:)=cjd0(ii)+(0:step_stela:3000);
 end
 
 
@@ -112,56 +112,94 @@ disp("Completed STELA propagation");
 // PLOTS OF THE ORBIT EVOLUTION
 // =====================================================
 
+colors=[[0, 135, 108];
+[61, 154, 112];
+[100, 173, 115];
+[137, 191, 119];
+[175, 209, 124];
+[214, 225, 132];
+[255, 241, 143];
+[253, 213, 118];
+[251, 184, 98];
+[245, 155, 86];
+[238, 125, 79];
+[227, 94, 78];
+[212, 61, 81]]/255;
+
+legend_strings=string(years)
+
+
 scf(1);
 subplot(231)
 for ii=1:length(years)
-    plot(cjd_stela-cjd0,sma_stela - %CL_eqRad, 'b')
+    plot(cjd_stela(ii,:)-cjd0(ii,:),sma_stela(ii,:) - %CL_eqRad,'color',colors(ii,:))
 end
 title('Altitude decay with STELA propagation')
 xlabel('Elapsed days since launch') 
 ylabel('Altitude (m)')
-//legend(['stela solar activity','GMAT solar activity'])
+legend(legend_strings)
 CL_g_stdaxes();
 
 subplot(232)
-plot(cjd_stela-cjd0,inc_stela*%CL_rad2deg)
+for ii=1:length(years)
+    plot(cjd_stela(ii,:)-cjd0(ii,:),inc_stela(ii,:)*%CL_rad2deg,'color',colors(ii,:))
+end
 title('Inclination with STELA propagation')
 xlabel('Elapsed days since launch')
 ylabel('Inclination (deg)')
 CL_g_stdaxes();
 
 subplot(233)
-plot(cjd_stela-cjd0,ecc_stela)
+for ii=1:length(years)
+    plot(cjd_stela(ii,:)-cjd0(ii,:),ecc_stela(ii,:),'color',colors(ii,:))
+end
 title('Eccentricity with STELA propagation')
 xlabel('Elapsed days since launch')
 ylabel('Eccentricity')
 CL_g_stdaxes();
 
 subplot(234);
-plot(cjd_stela-cjd0,pom_stela*%CL_rad2deg)
+for ii=1:length(years)
+    plot(cjd_stela(ii,:)-cjd0(ii,:),pom_stela(ii,:)*%CL_rad2deg,'color',colors(ii,:))
+end
 title('Argument of perigee with STELA propagation')
 xlabel('Elapsed days since launch')
 ylabel('Argument of perigee (deg)')
 CL_g_stdaxes();
 
 subplot(235);
-plot(cjd_stela-cjd0,RAAN_stela*%CL_rad2deg)
+for ii=1:length(years)
+    plot(cjd_stela(ii,:)-cjd0(ii,:),RAAN_stela(ii,:)*%CL_rad2deg,'color',colors(ii,:))
+end
 title('RAAN TOLOSAT with STELA propagation')
 xlabel('Elapsed days since launch')
 ylabel('RAAN (deg)')
 CL_g_stdaxes();
 
 subplot(236);
-plot(cjd_stela-cjd0,mltan,'.','MarkerSize',2,'Color','Blue')
+for ii=1:length(years)
+    plot(cjd_stela(ii,:)-cjd0(ii,:),mltan(ii,:),'color',colors(ii,:))
+end
 title('Evolution of the MLTAN during the TOLOSAT mission')
 ylabel('MLTAN [hours]')
 xlabel('Elapsed days since launch')
 CL_g_stdaxes();
+
 scf(1).figure_size=[2000,1000];
-deletefile('long_term_orbit.png')
-xs2png(1,'long_term_orbit.png');
+deletefile('launchYear_missionDuration.png')
+sleep(1000)
+xs2png(1,'launchYear_missionDuration.png');
 
 
+csvWrite(years,'years.csv')
+csvWrite(cjd_stela,'cjd_stela.csv')
+csvWrite(cjd0,'cjd0.csv')
+csvWrite(sma_stela,'sma.csv')
+csvWrite(inc_stela,'inc.csv')
+csvWrite(ecc_stela,'ecc.csv')
+csvWrite(pom_stela,'pom.csv')
+csvWrite(RAAN_stela,'RAAN.csv')
+csvWrite(mltan,'mltan.csv')
 
 
 
