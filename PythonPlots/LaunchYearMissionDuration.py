@@ -42,7 +42,7 @@ axes[2].set(ylabel="Eccentricity [-]")
 axes[3].set(ylabel="Argument of perigee [deg]")
 axes[4].set(ylabel="RAAN [deg]")
 axes[5].set(ylabel="MLTAN [hours]")
-plt.suptitle("Evolution of orbital parameters over the entire mission", color='white')
+plt.suptitle("Evolution of orbital parameters over the entire mission for various launch years", color='white')
 handles, _ = axes[5].get_legend_handles_labels()
 handles, labels = flip_legend(7, False, handles, [str(int(x)) for x in flatten(years.tolist())])
 F1.legend(handles, labels, loc=(0.015, 0.055), ncol=7, frameon=False,
