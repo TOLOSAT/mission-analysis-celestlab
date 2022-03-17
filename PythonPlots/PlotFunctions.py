@@ -62,10 +62,14 @@ def finish_figure(fig, path, show=True):
     plt.close()
 
 
-def flip_legend(reverse):
-    handles_, labels_ = plt.gca().get_legend_handles_labels()
-    handles_ = [k for j in [handles_[i::4] for i in range(4)] for k in j]
-    labels_ = [k for j in [labels_[i::4] for i in range(4)] for k in j]
+def flip_legend(ncol, reverse=False, handles_in=None, labels_in=None):
+    if handles_in is None and labels_in is None:
+        handles_, labels_ = plt.gca().get_legend_handles_labels()
+    else:
+        handles_ = handles_in
+        labels_ = labels_in
+    handles_ = [k for j in [handles_[i::ncol] for i in range(ncol)] for k in j]
+    labels_ = [k for j in [labels_[i::ncol] for i in range(ncol)] for k in j]
     if reverse:
         return handles_[::-1], labels_[::-1]
     else:
