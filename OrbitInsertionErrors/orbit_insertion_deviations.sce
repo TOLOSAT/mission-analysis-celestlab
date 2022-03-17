@@ -42,8 +42,8 @@ ecc = ecc_0+[-1.2e-3,0,1.2e-3];         // Eccentricity [-]
 inc = inc_0+[0.2,0,-0.2]*%CL_deg2rad;   // Inclination [rad]
 gom = gom_0+[0.2,0,-0.2]*%CL_deg2rad;   // Right ascension (longitude) of the ascending node (RAAN) [rad]
 
-//kep_mean_ini = [sma;ecc;inc;pom;gom;anm]
-kep_mean_ini = [sma_0;ecc_0;inc_0;pom_0;gom_0;anm_0];
+kep_mean_ini = [sma;ecc;inc;pom;gom;anm]
+// kep_mean_ini = [sma_0;ecc_0;inc_0;pom_0;gom_0;anm_0];
 
 // =====================================================
 // NUMERICAL PROPAGATION WITH STELA
@@ -80,7 +80,7 @@ params_stela.solarActivityFile =strcat([data_dir,"\stela_solar_activity.txt"]); 
 // Setup epochs vector
 params_stela.integrator_step = 2*%pi*sqrt(mean(kep_mean_ini(1))^3/%CL_mu); // exactly an orbit // 92*60; //92 minutes which is roughly an orbit
 step_stela= (params_stela.integrator_step)/86400; // propagation step in days
-cjd_stela = cjd0 + (0:step_stela:1600); // 3300 for worst case, 1650 for nominal
+cjd_stela = cjd0 + (0:step_stela:3300); // 3300 for worst case, 1650 for nominal
 
 
 //Propagation with default solar activity
@@ -182,12 +182,12 @@ csvWrite(pos_ECI_sun,"pos_ECI_sun.csv");
 // PLOTS OF THE ORBIT EVOLUTION
 // =====================================================
 Color=["blue","red","green"];
-legend_name=["Target Orbit"]
+//legend_name=["Target Orbit"]
 //legend_name=["sma+35km","target sma","sma-35km"];
 //legend_name=["ecc+1.2e-3","target ecc","ecc-1.2e-3"];
 //legend_name=["inc+0.2°","target inc","inc-0.2°"];
 //legend_name=["RAAN+0.2°","target RAAN","RAAN-0.2°"];
-//legend_name=["sma+35km, ecc-1.2e-3, inc+0.2°, RAAN+0.2°","target orbit","sma-35km, ecc+1.2e-3, inc-0.2°, RAAN-0.2°"]
+legend_name=["sma+35km, ecc-1.2e-3, inc+0.2°, RAAN+0.2°","target orbit","sma-35km, ecc+1.2e-3, inc-0.2°, RAAN-0.2°"]
 
 scf();
 subplot(231)
@@ -266,8 +266,16 @@ xlabel('Elapsed days since launch')
 CL_g_stdaxes();
 
 
-
-
+csvWrite(cjd_stela,'cjd_stela.csv')
+csvWrite(cjd0,'cjd0.csv')
+csvWrite(legend_name','legend_name.csv')
+csvWrite(sma_stela,'sma_stela.csv')
+csvWrite(inc_stela,'inc_stela.csv')
+csvWrite(ecc_stela,'ecc_stela.csv')
+csvWrite(pom_stela,'pom_stela.csv')
+csvWrite(RAAN_stela,'RAAN_stela.csv')
+csvWrite(mltan,'mltan.csv')
+tsvWrite(eclipse_duration_umb,'eclipse_duration_umb.csv')
 
 
 

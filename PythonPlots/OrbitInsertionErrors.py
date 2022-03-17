@@ -16,28 +16,24 @@ mltan = np.array(open_csv(data_path, "mltan.csv")).transpose()
 pom = np.array(open_csv(data_path, "pom_stela.csv")).transpose()
 RAAN = np.array(open_csv(data_path, "RAAN_stela.csv")).transpose()
 sma = np.array(open_csv(data_path, "sma_stela.csv")).transpose()
-labels = np.array(open_csv(data_path, "legend_name.csv"))
-earthRadius = 6.3781e6
+labels = open_csv(data_path, "legend_name.csv", is_string=True)
+labels = [ii.replace('Â', '') for ii in labels]
 
-# colors = np.array([(0, 135, 108), (61, 154, 112), (100, 173, 115), (137, 191, 119), (175, 209, 124), (214, 225, 132),
-#                    (255, 241, 143), (253, 213, 118), (251, 184, 98), (245, 155, 86), (238, 125, 79), (227, 94, 78),
-#                    (212, 61, 81)]) / 255.0
-colors = pl.cm.jet(np.linspace(0, 1, len(labels)))
+earthRadius = 6.3781e6
 
 # Figures
 F1, axes = dark_figure(subplots=(2, 3), figsize=(10, 6.5))
 handles = []
 for ii in range(len(labels)):
-    tmp_xTime = (cjd[:, ii] - cjd0[ii]) / 365.25
-    color = colors[ii]
-    axes[0].plot(tmp_xTime, (sma[:, ii] - earthRadius) / 1e3, color=color)
-    axes[1].plot(tmp_xTime, inc[:, ii] * 180 / pi, color=color)
-    axes[2].plot(tmp_xTime, ecc[:, ii], color=color)
-    axes[3].plot(tmp_xTime, pom[:, ii] * 180 / pi, color=color)
-    axes[4].plot(tmp_xTime, RAAN[:, ii] * 180 / pi, color=color)
-    axes[5].plot(tmp_xTime, mltan[:, ii], color=color, label='dummy label')
-    for jj in range(6):
-        axes[jj].set(xlabel="Time [years]")
+    tmp_xTime = (cjd - cjd0) / 365.25
+    axes[0].plot(tmp_xTime, (sma[:, ii] - earthRadius) / 1e3)
+    axes[1].plot(tmp_xTime, inc[:, ii] * 180 / pi)
+    axes[2].plot(tmp_xTime, ecc[:, ii])
+    axes[3].plot(tmp_xTime, pom[:, ii] * 180 / pi)
+    axes[4].plot(tmp_xTime, RAAN[:, ii] * 180 / pi)
+    axes[5].plot(tmp_xTime, mltan[:, ii], label='dummy label')
+for jj in range(6):
+    axes[jj].set(xlabel="Time [years]", xlim=[0, axes[jj].get_xlim()[1]])
 axes[0].set(ylabel="Altitude [km]")
 axes[1].set(ylabel="Inclination [deg]")
 axes[2].set(ylabel="Eccentricity [-]")
@@ -46,8 +42,8 @@ axes[4].set(ylabel="RAAN [deg]")
 axes[5].set(ylabel="MLTAN [hours]")
 plt.suptitle("Evolution of orbital parameters during the entire mission for various launch years", color='white')
 handles, _ = axes[5].get_legend_handles_labels()
-handles, labels = flip_legend(7, False, handles, [str(int(x)) for x in flatten(labels.tolist())])
-F1.legend(handles, labels, loc=(0.015, 0.055), ncol=7, frameon=False,
+handles, labels = flip_legend(2, False, handles, labels)
+F1.legend(handles, labels, loc=(0.015, 0.055), ncol=2, frameon=False,
           labelcolor='white')
 finish_figure(F1, target_folder + '/' + target_folder + '.png', show=True)
 print("done")

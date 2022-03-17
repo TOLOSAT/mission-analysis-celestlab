@@ -17,16 +17,22 @@ def get_plot_path(target_folder):
 
 
 # Function to open csv file and convert data to float array
-def open_csv(path, target_file):
+def open_csv(path, target_file, is_string=False):
     tmp = []
     with open(path + "\\" + target_file, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
-            if len(row) == 1:
-                tmp.append(float(row[0]))
+            if is_string:
+                tmp.append(','.join(row))
             else:
-                tmp.append([float(ii) for ii in row])
-    return np.array(tmp)
+                if len(row) == 1:
+                    tmp.append(float(row[0]))
+                else:
+                    tmp.append([float(ii) for ii in row])
+    if is_string:
+        return tmp
+    else:
+        return np.array(tmp)
 
 
 # Functions for figures

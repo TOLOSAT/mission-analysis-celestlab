@@ -36,8 +36,8 @@ for ii in range(len(years)):
     axes[3].plot(tmp_xTime, pom[:, ii] * 180 / pi, color=color)
     axes[4].plot(tmp_xTime, RAAN[:, ii] * 180 / pi, color=color)
     axes[5].plot(tmp_xTime, mltan[:, ii], color=color, label='dummy label')
-    for jj in range(6):
-        axes[jj].set(xlabel="Time [years]")
+for jj in range(6):
+    axes[jj].set(xlabel="Time [years]", xlim=[0, axes[jj].get_xlim()[1]])
 axes[0].set(ylabel="Altitude [km]")
 axes[1].set(ylabel="Inclination [deg]")
 axes[2].set(ylabel="Eccentricity [-]")
