@@ -191,6 +191,13 @@ sleep(1000)
 xs2png(1,'launchYear_missionDuration.png');
 
 
+csvWrite(years,'years.csv')
+csvWrite(sma_stela,'sma.csv')
+csvWrite(inc_stela,'inc.csv')
+csvWrite(ecc_stela,'ecc.csv')
+csvWrite(pom_stela,'pom.csv')
+csvWrite(RAAN_stela,'RAAN.csv')
+csvWrite(mltan,'mltan.csv')
 
 
 
