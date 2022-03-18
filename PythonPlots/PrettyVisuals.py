@@ -22,12 +22,18 @@ pos_lla[:, ::1] = pos_lla[:, ::1] * 180 / pi
 earthRadius = 6.3781e6
 
 # Figures
-F1, _ = dark_figure()
+F1, axes = dark_figure(figsize=(7, 4.5))
+axes[0].axis('off')
 axes = plt.axes(projection=ccrs.PlateCarree())
 axes.stock_img()
 axes.set_global()
 axes.plot(pos_lla[:, 0], pos_lla[:, 1], color='blue', linewidth=1, transform=ccrs.Geodetic())
-axes.axis('off')
+# gl = axes.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+#                   xlocs=np.arange(-150,360,30), ylocs=np.arange(-30, 40,10),
+#                   x_inline=False, y_inline=False, linewidth=0.33, color='k',alpha=0.5)
+# gl.right_labels = False
+# gl.top_labels = False
+plt.suptitle("Ground track across " + str(int(cjd[-1][0] - cjd0[0])) + " day(s)", color='white')
 finish_figure(F1, target_folder + '/' + target_folder + '_GroundTrack.png', show=True)
 
 tmp_xTime = (cjd - cjd0)
