@@ -4,4 +4,4 @@ This script uses the STELA propagator to compute the effect of various orbit ins
 
 ![Most extreme insertion errors](https://github.com/TOLOSAT/mission-analysis-celestlab/blob/main/PythonPlots/OrbitInsertionErrors/OrbitInsertionErrors_OrbitalParameters.png)
 
-![Eclipses with most extreme insertion errors](InsertionError_all_eclipse.png)
+![Eclipses with most extreme insertion errors](https://github.com/TOLOSAT/mission-analysis-celestlab/blob/main/PythonPlots/OrbitInsertionErrors/OrbitInsertionErrors_Eclipses.png)
