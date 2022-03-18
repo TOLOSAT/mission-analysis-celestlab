@@ -78,7 +78,7 @@ data_dir=strsubst(pwd(),"LongTermEclipses","Data");
 params_stela.solarActivityFile =strcat([data_dir,"\stela_solar_activity.txt"]); // predicted Geomagnetic index in 2024 same method as for the solar flux
 
 // Setup epochs vector
-params_stela.integrator_step = 2*%pi*sqrt(mean(kep_mean_ini(1))^3/%CL_mu); // exactly an orbit // 92*60; //92 minutes which is roughly an orbit
+params_stela.integrator_step = 5*2*%pi*sqrt(mean(kep_mean_ini(1))^3/%CL_mu); // exactly five orbit // 92*60; //92 minutes which is roughly an orbit
 step_stela= (params_stela.integrator_step)/86400; // propagation step in days
 cjd_stela = cjd0 + (0:step_stela:3300); // 3300 for worst case, 1650 for nominal
 
@@ -166,7 +166,9 @@ for jj=1:nb_stela_propagations
     minutes=(remaining_time-seconds)/60;
     hours=(minutes-modulo(minutes,60))/60;
     minutes=modulo(minutes,60);
-    disp(strcat(['Computation ',string(counter),'/',string(nb_stela_epochs*nb_stela_propagations),' (',string(counter/(nb_stela_epochs*nb_stela_propagations)*100),' %)',' Remaining : ',string(hours),' hours ',string(minutes),' minutes ',string(seconds),' seconds']));
+    if modulo(counter,10)==0
+        disp(strcat(['Computation ',string(counter),'/',string(nb_stela_epochs*nb_stela_propagations),' (',string(counter/(nb_stela_epochs*nb_stela_propagations)*100),' %)',' Remaining : ',string(hours),' hours ',string(minutes),' minutes ',string(seconds),' seconds']));
+    end
     end
 end
 
@@ -275,7 +277,7 @@ csvWrite(ecc_stela,'ecc_stela.csv')
 csvWrite(pom_stela,'pom_stela.csv')
 csvWrite(RAAN_stela,'RAAN_stela.csv')
 csvWrite(mltan,'mltan.csv')
-tsvWrite(eclipse_duration_umb,'eclipse_duration_umb.csv')
+csvWrite(eclipse_duration_umb,'eclipse_duration_umb.csv')
 
 
 
