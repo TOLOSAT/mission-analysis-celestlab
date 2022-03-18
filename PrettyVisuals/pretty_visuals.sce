@@ -67,6 +67,7 @@ lydane_M = lydane_kep_results(6,:);                           // Mean anomaly [r
 
 // Position in ECF
 pos_ecf = CL_fr_convert("ECI", "ECF", lydane_cjd, pos_eci); 
+pos_lla = CL_co_car2sph(pos_ecf);
 
 
 // =====================================================
@@ -132,5 +133,19 @@ scf(2).figure_size=[2000,1000];
 deletefile('orbit_evolution_lydane.png');
 sleep(1000)
 xs2png(2,'orbit_evolution_lydane.png');
+
+csvWrite(pos_eci,'pos_eci.csv')
+csvWrite(vel_eci,'vel_eci.csv')
+csvWrite(pos_ecf,'pos_ecf.csv')
+csvWrite(pos_lla,'pos_lla.csv')
+csvWrite(lydane_cjd,'lydane_cjd.csv')
+csvWrite(cjd0,'cjd0.csv')
+
+csvWrite(lydane_sma,'lydane_sma.csv')
+csvWrite(lydane_inc,'lydane_inc.csv')
+csvWrite(lydane_ecc,'lydane_ecc.csv')
+csvWrite(lydane_pom,'lydane_pom.csv')
+csvWrite(lydane_RAAN,'lydane_RAAN.csv')
+csvWrite(lydane_M,'lydane_M.csv')
 
 
