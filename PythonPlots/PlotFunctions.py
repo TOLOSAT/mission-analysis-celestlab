@@ -6,8 +6,6 @@ from PIL import Image
 from math import prod
 import os
 
-Badge_TOLOSAT = Image.open('assets/TOLOSAT.png')
-
 
 # Function to prepare output folder and return path
 def get_plot_path(target_folder):
@@ -52,15 +50,51 @@ def dark_figure(subplots=(1, 1), figsize=(7, 5.2)):
     return fig, axes
 
 
-def finish_figure(fig, path, show=True):
+def light_figure(subplots=(1, 1), figsize=(7, 5.2)):
+    fig = plt.figure(facecolor='white', figsize=figsize)
+    axes = []
+    for ii in range(0, prod(subplots)):
+        axes.append(fig.add_subplot(subplots[0], subplots[1], ii + 1, facecolor='white'))
+        axes[ii].tick_params(axis='x', colors='black', which='both')
+        axes[ii].tick_params(axis='y', colors='black', which='both')
+        axes[ii].yaxis.label.set_color('black')
+        axes[ii].xaxis.label.set_color('black')
+        axes[ii].title.set_color('black')
+        axes[ii].grid(color='lightgrey', linewidth=0.5)
+        for i in axes[ii].spines:
+            axes[ii].spines[i].set_color('black')
+    return fig, axes
+
+
+def finish_dark_figure(fig, path, show=True):
     plt.tight_layout()
     fig.subplots_adjust(bottom=0.20)
     fig_axes1 = fig.add_axes([0.772, 0.01, 0.22, 0.3], anchor='SE', zorder=1)
-    fig_axes1.imshow(Badge_TOLOSAT)
+    Badge_TOLOSAT_dark = Image.open('assets/TOLOSAT_dark.png')
+    fig_axes1.imshow(Badge_TOLOSAT_dark)
+    Badge_TOLOSAT_dark.close()
     fig_axes1.axis('off')
     fig_axes2 = fig.add_axes([0.02, 0.02, 1, 1], anchor='SW', zorder=1)
     fig_axes2.text(0, 0, datetime.now(timezone.utc).strftime("Plot generated on %Y/%m/%d at %H:%M:%S UTC."),
                    color='dimgray')
+    fig_axes2.axis('off')
+    plt.savefig(path, transparent=False, dpi=500)
+    if show:
+        plt.show()
+    plt.close()
+
+
+def finish_light_figure(fig, path, show=True):
+    plt.tight_layout()
+    fig.subplots_adjust(bottom=0.20)
+    fig_axes1 = fig.add_axes([0.772, 0.01, 0.22, 0.3], anchor='SE', zorder=1)
+    Badge_TOLOSAT_light = Image.open('assets/TOLOSAT_light.png')
+    fig_axes1.imshow(Badge_TOLOSAT_light)
+    Badge_TOLOSAT_light.close()
+    fig_axes1.axis('off')
+    fig_axes2 = fig.add_axes([0.02, 0.02, 1, 1], anchor='SW', zorder=1)
+    fig_axes2.text(0, 0, datetime.now(timezone.utc).strftime("Plot generated on %Y/%m/%d at %H:%M:%S UTC."),
+                   color='silver')
     fig_axes2.axis('off')
     plt.savefig(path, transparent=False, dpi=500)
     if show:
